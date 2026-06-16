@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Python-generated files
 __pycache__/
 *.py[oc]
@@ -15,8 +14,6 @@ wheels/
 # Secrets
 .env
 
-=======
->>>>>>> 0254ea88fcc4808c63b213eff5bdb79170276325
 # History files
 .Rhistory
 .Rapp.history
@@ -44,11 +41,7 @@ wheels/
 vignettes/*.html
 vignettes/*.pdf
 
-<<<<<<< HEAD
 # OAuth2 token
-=======
-# OAuth2 token, see https://github.com/hadley/httr/releases/tag/v0.3
->>>>>>> 0254ea88fcc4808c63b213eff5bdb79170276325
 .httr-oauth
 
 # knitr and R markdown default cache directories
