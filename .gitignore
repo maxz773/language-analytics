@@ -63,3 +63,6 @@ po/*~
 
 # RStudio Connect folder
 rsconnect/
+
+# Java related
+.jar
