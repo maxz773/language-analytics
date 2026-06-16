@@ -5,7 +5,7 @@ library(readr)
 df <- read.csv("data/results.csv", stringsAsFactors = FALSE)
 
 # Threshold
-threshold <- 7
+threshold <- 5
 
 # Check how many rows failed during the annotation
 error_count <- sum(df$Specificity_Score == -1, na.rm = TRUE)
