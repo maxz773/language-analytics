@@ -1,14 +1,15 @@
-
 library(dplyr)
 library(readr)
+library(readxl)
 
-df <- read.csv("data/results.csv", stringsAsFactors = FALSE)
+df_scores <- read.csv("data/results.csv", stringsAsFactors = FALSE)
+df_text <- read_xlsx("data/cleaned_reviews.xlsx")
 
 # Threshold
 threshold <- 5
 
 # Check how many rows failed during the annotation
-error_count <- sum(df$Specificity_Score == -1, na.rm = TRUE)
+error_count <- sum(df_scores$Specificity_Score == -1, na.rm = TRUE)
 
 if (error_count > 0) {
   cat(sprintf("\nATTENTION: Found %d failed records.\n", error_count))
@@ -17,7 +18,7 @@ if (error_count > 0) {
 }
 
 # Feature engineering
-final_df <- df |>
+final_df <- df_scores |>
   filter(Specificity_Score != -1) |>
   mutate(
     # Convert the four score columns to numeric
@@ -29,7 +30,15 @@ final_df <- df |>
     # Apply threshold for Constructivity
     Constructivity = ifelse(Total_Score >= threshold, 1, 0)
   ) |>
-  select(-Raw_Sum)
+  select(-Raw_Sum) |>
+  # Add combined text back to dataframe
+  left_join(
+    df_text |>
+      select(Bewertungs_ID, Combined_Text),
+      by = c("Bewertungs_ID")
+  ) |>
+  # Optimize layout
+  relocate(Combined_Text, .after = Bewertungs_ID)
 
 print(head(final_df, 5))
 
