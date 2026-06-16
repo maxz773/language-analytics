@@ -5,7 +5,7 @@ library(dplyr)
 df <- read_xlsx("cleaned_reviews.xlsx")
 
 set.seed(42)
-sampled_df <- df %>% 
+sampled_df <- df %>%
   slice_sample(n = 150)
 
 final_df <- sampled_df %>%
@@ -16,4 +16,4 @@ final_df <- sampled_df %>%
     Constructivity_Definition = NA
   )
 
-write_xlsx(final_df, "sampled_constructivity.xlsx")
+write_xlsx(final_df, "data/sampled_constructivity.xlsx")
