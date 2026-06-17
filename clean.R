@@ -11,7 +11,7 @@ cleaned_df <- df |>
   filter(!is.na(Bewertungstext) & Bewertungstext != "") |>
 
   # Select only three columns
-  select(Bewertungs_ID, Bewertungstitel, Bewertungstext) |>
+  select(Bewertungs_ID, Bewertung, Bewertungstitel, Bewertungstext) |>
 
   mutate(
     # Smartly concatenate title and text

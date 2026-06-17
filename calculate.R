@@ -2,7 +2,7 @@ library(dplyr)
 library(readr)
 library(readxl)
 
-df_scores <- read.csv("data/results.csv", stringsAsFactors = FALSE)
+df_scores <- read_csv("data/results.csv")
 df_text <- read_xlsx("data/cleaned_reviews.xlsx")
 
 # Threshold
@@ -34,11 +34,11 @@ final_df <- df_scores |>
   # Add combined text back to dataframe
   left_join(
     df_text |>
-      select(Bewertungs_ID, Combined_Text),
+      select(Bewertungs_ID, Bewertung, Combined_Text),
       by = c("Bewertungs_ID")
   ) |>
   # Optimize layout
-  relocate(Combined_Text, .after = Bewertungs_ID)
+  relocate(Bewertung, Combined_Text, .after = Bewertungs_ID)
 
 print(head(final_df, 5))
 

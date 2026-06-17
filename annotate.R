@@ -28,7 +28,7 @@ if (!file.exists(output_file)) {
     stringsAsFactors = FALSE
   )
   write.table(headers,
-              file = output_file,Explanation_Score
+              file = output_file,
               sep = ",",
               row.names = FALSE,
               col.names = FALSE
@@ -38,7 +38,7 @@ if (!file.exists(output_file)) {
 # Read IDs of already processed data to resume transfer
 already_processed_ids <- c()
 if (file.exists(output_file) && file.info(output_file)$size > 20) {
-  progress_df <- read.csv(output_file, stringsAsFactors = FALSE)
+  progress_df <- read.csv(output_file, stringsAsFactors = FALSE, header = TRUE)
   already_processed_ids <- progress_df$Bewertungs_ID
 }
 
@@ -72,20 +72,20 @@ Decision rules:
 Note: Negative sentiment alone is NOT enough — the specific problem must be named.
 
 DIMENSION 3 — SOLUTION OFFERING
-Definition: Extent to which a review offers a suggestion, recommendation, or remedy for the business to improve, or for other customers to consider.
+Definition: Extent to which a review explicitly proposes a concrete method, action, or change that the seller or manufacturer should implement to address a problem.
 Decision rules:
-- Score 3: Explicitly proposes a concrete solution, improvement suggestion, or actionable workaround.
-- Score 2: A desire for a solution is weakly implied, or a vague wish is expressed without a concrete proposal.
-- Score 1: Offers no solution or suggestion at all.
+- Score 3: Explicitly states a concrete action the seller or manufacturer should take (e.g., "needs to change the packaging" or “the instructions should be clearer”).
+- Score 2: A suggestion is present but only weakly or indirectly articulated — for example, a desired outcome is named without specifying the action needed to achieve it. (e.g., “the taste is bitter”, “the delivery was slow”, “the medication had no effect”)
+- Score 1: Offers no suggestion, or expresses only general dissatisfaction, vague wishes, or implicit improvement hints without naming a specific action (e.g., "I didn’t like it”, “just bad”, “it was okay”)
 Note: A solution can be directed either at the merchant (how to fix it) or at future customers (how to deal with it).
 
 DIMENSION 4 - EXPLANATION
-Definition: The degree to which a review explains the underlying reasons, causes, or context behind the user's evaluation or the problem identified.
+Definition: The degree to which a review provides substantive reasons or motives that clarify why the reviewer holds the expressed opinion.
 Decision rules:
-- Score 3: Clearly explains why something was good or bad, providing the context or causal mechanism.
-- Score 2: Provides a weak, superficial, or incomplete explanation.
-- Score 1: States a fact, verdict, or problem with absolutely no explanation or reasoning.
-Note: Explanation focuses on the cause/reason behind the outcome, helping the reader understand the "why" rather than just the "what".
+- Score 3: Provides at least one substantive reason — a motive, mechanism, comparison, consequence, or contextual factor — that explains why something was evaluated positively or negatively (e.g., why a taste was unpleasant, why delivery was considered fast, what effect or lack of effect was observed and under what conditions).
+- Score 2: A reason is partially present — for instance, a cause is hinted at but not explained, or the reasoning applies to only one part of the review.
+- Score 1: Gives only an evaluative verdict with no supporting reason, or provides only circular justification that merely restates the evaluation in different words (e.g., "top Produkt, weil es sehr gut ist," "schmeckt nicht, gefällt mir nicht").
+Note: Length does not guarantee explanation. A long review that repeats the same verdict without reasoning still scores low.
 
 --- OUTPUT FORMAT ---
 You MUST output ONLY a valid JSON object.
@@ -100,7 +100,13 @@ base_messages <- list(
   list("role" = "user", "content" = "Text: Alles super, gerne wieder."),
   list("role" = "assistant", "content" = '{"specificity_score": 1, "problem_identification_score": 1, "solution_offering_score": 1, "explanation_score": 1}'),
   list("role" = "user", "content" = "Text: Das Paket kam beschädigt an und eine Dose war ausgelaufen."),
-  list("role" = "assistant", "content" = '{"specificity_score": 3, "problem_identification_score": 3, "solution_offering_score": 1, "explanation_score": 1}')
+  list("role" = "assistant", "content" = '{"specificity_score": 3, "problem_identification_score": 3, "solution_offering_score": 1, "explanation_score": 1}'),
+  list("role" = "user", "content" = "Text: Das Paket kam zerdrückt an — bitte stabileres Verpackungsmaterial verwenden."),
+  list("role" = "assistant", "content" = '{"specificity_score": 3, "problem_identification_score": 3, "solution_offering_score": 3, "explanation_score": 1}'),
+  list("role" = "user", "content" = "Text: Die Verpackung war nicht so toll, da könnte man noch was verbessern."),
+  list("role" = "assistant", "content" = '{"specificity_score": 2, "problem_identification_score": 2, "solution_offering_score": 2, "explanation_score": 1}'),
+  list("role" = "user", "content" = "Text: Das Produkt ist schlecht, hat mir gar nicht gefallen"),
+  list("role" = "assistant", "content" = '{"specificity_score": 1, "problem_identification_score": 1, "solution_offering_score": 1, "explanation_score": 1}')
 )
 
 # test_text <- "Titel: Wir haben jetzt unsere 2te 8er Box beste…, Text: Wir haben jetzt unsere 2te 8er Box bestellt und sind total begeistert. Das Essen schmeckt sehr, sehr lecker. Die Lieferung kommt schnell und komplett gefroren. Bei der Zubereitung im Ofen lassen wir die Menues 10 Minuten länger drin damit das Essen überall heiß ist. Von uns gibt es die volle Punkzahl. Über den Kundenservice kann ich nichts sagen weil wir ihn nicht gebraucht haben. Alles super"
@@ -159,12 +165,9 @@ for (i in 1:total_rows) {
     # Send POST request
     response <- POST(
       url = url,
-      add_headers(
-        "Authorization" = paste("Bearer", api_key),
-        "Content-Type" = "application/json"
-      ),
-      body = toJSON(body_data, auto_unbox = TRUE),
-      encode = "raw"
+      add_headers("Authorization" = paste("Bearer", api_key)),
+      body = body_data,
+      encode = "json"
     )
 
     # Parse response
@@ -211,7 +214,7 @@ for (i in 1:total_rows) {
               col.names = FALSE
               )
 
-  Sys.sleep(0.5)
+  Sys.sleep(0.3)
 }
 
 cat("=== Annotation of the entire dataset completed! ===\n")
