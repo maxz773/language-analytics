@@ -1,8 +1,8 @@
-library(readr)
+library(readxl)
 library(writexl)
 library(dplyr)
 
-df <- read_csv("data/final_results.csv")
+df <- read_xlsx("data/final_results.xlsx")
 
 set.seed(773)
 sampled_df <- df |>
