@@ -40,7 +40,19 @@ if (!file.exists(output_file)) {
 already_processed_ids <- c()
 if (file.exists(output_file) && file.info(output_file)$size > 20) {
   progress_df <- read.csv(output_file, stringsAsFactors = FALSE, header = TRUE)
-  already_processed_ids <- progress_df$Bewertungs_ID
+
+  successful_df <- progress_df |>
+    filter(as.numeric(Specificity_Score) != -1)
+
+  write.table(successful_df,
+              file = output_file,
+              sep = ",",
+              row.names = FALSE,
+              col.names = TRUE)
+
+  already_processed_ids <- already_processed_ids <- successful_df$Bewertungs_ID
+
+  cat(sprintf("🔄 Resuming session: Cleaned up failed records. %d successful records preserved.\n", nrow(successful_df)))
 }
 
 # -------- PREPARE PROMPTS --------
@@ -230,3 +242,5 @@ for (i in 1:total_rows) {
 }
 
 cat("=== Annotation of the entire dataset completed! ===\n")
+
+#
