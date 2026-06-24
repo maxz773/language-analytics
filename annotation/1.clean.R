@@ -11,27 +11,16 @@ cleaned_df <- df |>
   filter(!is.na(Bewertungstext) & Bewertungstext != "") |>
 
   # Select only three columns
-  select(Bewertungs_ID, Bewertung, Bewertungstitel, Bewertungstext) |>
+  select(Bewertungs_ID, Bewertung, Bewertungstext) |>
 
+  # Create new columns
   mutate(
-    # Smartly concatenate title and text
-    Combined_Text = ifelse(
-      is.na(Bewertungstitel) | trimws(Bewertungstitel) == "",
-      paste0("Text: ", Bewertungstext),                                  # If title empty, output Text: xxx
-      paste0("Titel: ", Bewertungstitel, ", Text: ", Bewertungstext)     # If title not empty, output Titel: xxx, Text: xxx
-    ),
-
-    # Create new columns
     Specificity_Score = NA,
     Problem_Identification_Score = NA,
     Solution_Offering_Score = NA,
     Explanation_Score = NA,
-    Total_Score = NA,
     Constructivity = NA
-  ) |>
-
-  # Delete Bewerbungstitel and Bewerbungstext
-  select(-Bewertungstitel, -Bewertungstext)
+  )
 
 
 write_xlsx(cleaned_df, "data/cleaned_reviews.xlsx")
