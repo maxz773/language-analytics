@@ -3,7 +3,6 @@ library(jsonlite)
 library(dplyr)
 library(dotenv)
 library(readxl)
-library(writexl)
 
 # -------- INITIALIZE VARIABLES --------
 # Load API key
@@ -50,7 +49,7 @@ if (file.exists(output_file) && file.info(output_file)$size > 20) {
               row.names = FALSE,
               col.names = TRUE)
 
-  already_processed_ids <- already_processed_ids <- successful_df$Bewertungs_ID
+  already_processed_ids <- successful_df$Bewertungs_ID
 
   cat(sprintf("🔄 Resuming session: Cleaned up failed records. %d successful records preserved.\n", nrow(successful_df)))
 }
@@ -58,17 +57,12 @@ if (file.exists(output_file) && file.info(output_file)$size > 20) {
 # -------- PREPARE PROMPTS --------
 # System prompt
 system_prompt <- r"(
-Role: You are an expert annotator coding German customer reviews for an academic text-classification study. Apply the definitions and rules below exactly as written. Do not improvise or add your own criteria. Base every decision only on the review text provided. If you are genuinely uncertain between two scores for a dimension, choose the lower score. Do not guess upward.
-
-Background: Each review is a German-language customer review from a nutrition/supplement online shop. You will rate each review on four independent dimensions of feedback constructiveness and provide an overall binary label for constructiveness.
-
-Scoring scale (applies to the four dimensions):
-0 = low fulfilment (dimension is essentially absent)
-1 = partial fulfilment (dimension is present but weak or only implicit)
-2 = high fulfilment (dimension is clearly and explicitly present)
+Role: Role: You are an expert annotator coding German customer reviews from a nutrition/supplement online shop for an academic text-classification study. Apply the definitions and rules below exactly as written. Do not improvise. Base every decision ONLY on the text. If genuinely uncertain between two scores, choose the lower score.
 
 --- DEFINITIONS AND RULES ---
-DIMENSION 1 — SPECIFICITY
+0 = Dimension absent | 1 = Weakly/implicitly present | 2 = Clearly/explicitly present
+
+DIMENSION 1 — SPECIFICITY (Concrete attributes vs. general verdict)
 Definition: Specificity is the degree to which a review provides concrete, tangible detail about particular attributes of the product or service experience, rather than a general overall verdict.
 Decision rules:
 - Score 2: Names one or more concrete, identifiable attributes (e.g., delivery time, packaging, taste, price).
@@ -76,7 +70,7 @@ Decision rules:
 - Score 0: Gives only a general overall verdict with no concrete attribute (e.g., "alles super", "top").
 Note: A review can be positive AND highly specific. Length alone does not equal specificity.
 
-DIMENSION 2 — PROBLEM IDENTIFICATION
+DIMENSION 2 — PROBLEM IDENTIFICATION (Naming a specific issue/fault)
 Definition: Extent to which a review explicitly names a specific issue, fault, or shortcoming.
 Decision rules:
 - Score 2: Explicitly names a concrete fault/defect (e.g., damaged package, late delivery).
@@ -84,7 +78,7 @@ Decision rules:
 - Score 0: Names no concrete problem (includes purely positive reviews AND vague dissatisfaction like "war okay, nicht begeistert").
 Note: Negative sentiment alone is NOT enough — the specific problem must be named.
 
-DIMENSION 3 — SOLUTION OFFERING
+DIMENSION 3 — SOLUTION OFFERING (Proposing a concrete action/change)
 Definition: Extent to which a review explicitly proposes a concrete method, action, or change that the seller or manufacturer should implement to address a problem.
 Decision rules:
 - Score 2: Explicitly states a concrete action the seller or manufacturer should take (e.g., "needs to change the packaging" or “the instructions should be clearer”).
@@ -92,7 +86,7 @@ Decision rules:
 - Score 0: Offers no suggestion, or expresses only general dissatisfaction, vague wishes, or implicit improvement hints without naming a specific action (e.g., "I didn’t like it”, “just bad”, “it was okay”)
 Note: A solution can be directed either at the merchant (how to fix it) or at future customers (how to deal with it).
 
-DIMENSION 4 - EXPLANATION
+DIMENSION 4 - EXPLANATION (Providing reasons or motives)
 Definition: The degree to which a review provides substantive reasons or motives that clarify why the reviewer holds the expressed opinion.
 Decision rules:
 - Score 2: Provides at least one substantive reason — a motive, mechanism, comparison, consequence, or contextual factor — that explains why something was evaluated positively or negatively (e.g., why a taste was unpleasant, why delivery was considered fast, what effect or lack of effect was observed and under what conditions).
@@ -100,9 +94,13 @@ Decision rules:
 - Score 0: Gives only an evaluative verdict with no supporting reason, or provides only circular justification that merely restates the evaluation in different words (e.g., "top Produkt, weil es sehr gut ist," "schmeckt nicht, gefällt mir nicht").
 Note: Length does not guarantee explanation. A long review that repeats the same verdict without reasoning still scores low.
 
-OVERALL CONSTRUCTIVITY
-- 1: The review is in general constructive
-- 0: The review is in general not constructive
+OVERALL LABEL — CONSTRUCTIVITY (Binary classification of actionable value)
+- Score 1 (Constructive): The reveiw is in general constructive and provides actionable value, meaningful insights, or helpful feedback.
+- Score 0 (Not Constructive): The review is in general unconstructive (e.g. purely evaluative, emotional, or superficial).
+Note: A review can be highly specific about product attributes, but still lack overall constructivity if it merely states a fact without further insight.
+
+--- CRITICAL LOGIC CONSTRAINTS ---
+'Specificity' is the foundational dimension. If a review scores 0 in Specificity, it MUST logically score 0 in Problem Identification, Solution Offering, and Explanation.
 
 --- OUTPUT FORMAT ---
 You MUST output ONLY a valid JSON object.
@@ -113,7 +111,7 @@ base_messages <- list(
   list("role" = "system", "content" = system_prompt),
   # Few-Shot
   list("role" = "user", "content" = "Die Lieferung kam in 2 Tagen, die Kapseln waren gut verpackt und der Geschmack ist mild."),
-  list("role" = "assistant", "content" = '{"specificity_score": 2, "problem_identification_score": 0, "solution_offering_score": 0, "explanation_score": 0, "constructivity": 1}'),
+  list("role" = "assistant", "content" = '{"specificity_score": 2, "problem_identification_score": 0, "solution_offering_score": 0, "explanation_score": 0, "constructivity": 0}'),
   list("role" = "user", "content" = "Alles super, gerne wieder."),
   list("role" = "assistant", "content" = '{"specificity_score": 0, "problem_identification_score": 0, "solution_offering_score": 0, "explanation_score": 0, "constructivity": 0}'),
   list("role" = "user", "content" = "Das Paket kam beschädigt an und eine Dose war ausgelaufen."),
