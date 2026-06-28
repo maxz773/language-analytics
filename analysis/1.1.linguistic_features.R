@@ -6,7 +6,7 @@ library(readxl)
 # Download the pre-trained German model
 # udmodel_german <- udpipe_download_model(language = "german")
 
-# Load the model from drive
+# Load the model from disk
 udmodel <- udpipe_load_model(file = "german-gsd-ud-2.5-191206.udpipe")
 
 # Load data
@@ -41,3 +41,6 @@ linguistic_features <- anno_df |>
 
 # View the final extracted features
 print(linguistic_features)
+
+# Save the features to disk
+saveRDS(linguistic_features, file = "features/linguistic_features.rds")
