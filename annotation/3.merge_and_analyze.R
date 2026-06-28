@@ -3,7 +3,7 @@ library(readr)
 library(readxl)
 library(writexl)
 
-df_scores <- read_csv("data/results.csv", stringsAsFactors = FALSE)
+df_scores <- read_csv("data/results.csv")
 df_cleaned <- read_xlsx("data/cleaned_reviews.xlsx")
 
 # Data quality check
