@@ -57,7 +57,7 @@ if (file.exists(output_file) && file.info(output_file)$size > 20) {
 # -------- PREPARE PROMPTS --------
 # System prompt
 system_prompt <- r"(
-Role: Role: You are an expert annotator coding German customer reviews from a nutrition/supplement online shop for an academic text-classification study. Apply the definitions and rules below exactly as written. Do not improvise. Base every decision ONLY on the text. If genuinely uncertain between two scores, choose the lower score.
+Role: You are an expert annotator coding German customer reviews from a nutrition/supplement online shop for an academic text-classification study. Apply the definitions and rules below exactly as written. Do not improvise. Base every decision ONLY on the text. If genuinely uncertain between two scores, choose the lower score.
 
 --- DEFINITIONS AND RULES ---
 0 = Dimension absent | 1 = Weakly/implicitly present | 2 = Clearly/explicitly present
@@ -97,7 +97,7 @@ Note: Length does not guarantee explanation. A long review that repeats the same
 OVERALL LABEL — CONSTRUCTIVITY (Binary classification of actionable value)
 - Score 1 (Constructive): The reveiw is in general constructive and provides actionable value, meaningful insights, or helpful feedback.
 - Score 0 (Not Constructive): The review is in general unconstructive (e.g. purely evaluative, emotional, or superficial).
-Note: A review can be highly specific about product attributes, but still lack overall constructivity if it merely states a fact without further insight.
+WARNING: Do NOT confuse a detailed review with a constructive one. A review can score 2 in Specificity, but if it is purely evaluative or positive without offering any actionable insight or improvement suggestion, Constructivity MUST default to 0.
 
 --- CRITICAL LOGIC CONSTRAINTS ---
 'Specificity' is the foundational dimension. If a review scores 0 in Specificity, it MUST logically score 0 in Problem Identification, Solution Offering, and Explanation.
